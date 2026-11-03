@@ -5,7 +5,7 @@ RUN --mount=type=cache,id=npm,target=/root/.npm npm ci --ignore-scripts --no-aud
 COPY . .
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:1.28-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runtime
 COPY nginx/ /etc/nginx/
 COPY --from=build /src/dist /usr/share/nginx/html
 EXPOSE 8080
