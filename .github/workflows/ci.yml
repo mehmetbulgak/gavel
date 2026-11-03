@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: backend/global.json
+      - run: dotnet restore Gavel.slnx --locked-mode
+      - run: dotnet format Gavel.slnx --no-restore --verify-no-changes
+      - run: dotnet build Gavel.slnx --no-restore -c Release
+      - run: dotnet test --solution Gavel.slnx --no-build -c Release --report-trx --coverage --coverage-output-format cobertura --results-directory "$GITHUB_WORKSPACE/backend/TestResults"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: backend-test-results
+          path: backend/TestResults
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm audit --audit-level=high
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  images:
+    name: Container images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - run: cp .env.example .env
+      - run: docker compose --profile demo config --quiet
+      - run: docker compose --profile demo build

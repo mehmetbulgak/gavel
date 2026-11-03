@@ -1,0 +1,8 @@
+services:
+  gateway:
+    environment:
+      RateLimits__SignIn: "100000"
+      RateLimits__Session: "100000"
+      RateLimits__Bids: "100000"
+      RateLimits__Listings: "100000"
+      RateLimits__Api: "100000"

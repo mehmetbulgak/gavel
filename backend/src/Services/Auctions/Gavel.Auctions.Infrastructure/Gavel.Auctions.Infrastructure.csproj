@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gavel.Auctions.Application\Gavel.Auctions.Application.csproj" />
+  </ItemGroup>
+
+</Project>

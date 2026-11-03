@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\Gavel.ServiceDefaults\Gavel.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

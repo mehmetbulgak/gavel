@@ -1,0 +1,26 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.6.4">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>gavel-apphost-5f0c2d3e</UserSecretsId>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);ASPIRE010</NoWarn>
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.JavaScript" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" />
+    <PackageReference Include="Aspire.Hosting.Redis" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Gateway\Gavel.Gateway\Gavel.Gateway.csproj" />
+    <ProjectReference Include="..\..\Services\Auctions\Gavel.Auctions.Api\Gavel.Auctions.Api.csproj" />
+    <ProjectReference Include="..\..\Services\Identity\Gavel.Identity.Api\Gavel.Identity.Api.csproj" />
+    <ProjectReference Include="..\..\Services\Notifications\Gavel.Notifications.Api\Gavel.Notifications.Api.csproj" />
+    <ProjectReference Include="..\..\Simulator\Gavel.Simulator\Gavel.Simulator.csproj" />
+  </ItemGroup>
+
+</Project>

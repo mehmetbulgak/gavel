@@ -1,0 +1,213 @@
+name: gavel
+
+x-dotnet-service: &dotnet-service
+  build: &dotnet-build
+    context: ./backend
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  networks:
+    - backend
+
+x-service-env: &service-env
+  ASPNETCORE_ENVIRONMENT: Production
+  Database__MigrateOnStartup: "true"
+  Auth__RequireHttpsMetadata: "false"
+  ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USER:-gavel}:${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env}@rabbitmq:5672
+  services__identity__http__0: http://identity:8080
+  services__auctions__http__0: http://auctions:8080
+  services__notifications__http__0: http://notifications:8080
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?Set IDENTITY_DB_PASSWORD in .env}
+      AUCTIONS_DB_PASSWORD: ${AUCTIONS_DB_PASSWORD:?Set AUCTIONS_DB_PASSWORD in .env}
+      NOTIFICATIONS_DB_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD:?Set NOTIFICATIONS_DB_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./deploy/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - backend
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}", "--save", "", "--appendonly", "no"]
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    restart: unless-stopped
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-gavel}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Set RABBITMQ_PASSWORD in .env}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+    networks:
+      - backend
+
+  mailpit:
+    image: axllent/mailpit:v1.29
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"
+    networks:
+      - backend
+
+  identity:
+    <<: *dotnet-service
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT: src/Services/Identity/Gavel.Identity.Api/Gavel.Identity.Api.csproj
+    environment:
+      <<: *service-env
+      ConnectionStrings__identitydb: Host=postgres;Database=gavel_identity;Username=gavel_identity;Password=${IDENTITY_DB_PASSWORD}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  auctions:
+    <<: *dotnet-service
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT: src/Services/Auctions/Gavel.Auctions.Api/Gavel.Auctions.Api.csproj
+    environment:
+      <<: *service-env
+      ConnectionStrings__auctionsdb: Host=postgres;Database=gavel_auctions;Username=gavel_auctions;Password=${AUCTIONS_DB_PASSWORD}
+      ConnectionStrings__redis: redis:6379,password=${REDIS_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      identity:
+        condition: service_started
+
+  notifications:
+    <<: *dotnet-service
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT: src/Services/Notifications/Gavel.Notifications.Api/Gavel.Notifications.Api.csproj
+    environment:
+      <<: *service-env
+      ConnectionStrings__notificationsdb: Host=postgres;Database=gavel_notifications;Username=gavel_notifications;Password=${NOTIFICATIONS_DB_PASSWORD}
+      Email__Host: mailpit
+      Email__Port: "1025"
+      Email__PublicBaseUrl: ${PUBLIC_URL:-http://localhost:8080}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      identity:
+        condition: service_started
+
+  gateway:
+    <<: *dotnet-service
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT: src/Gateway/Gavel.Gateway/Gavel.Gateway.csproj
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Auth__RequireHttpsMetadata: "false"
+      services__identity__http__0: http://identity:8080
+      services__auctions__http__0: http://auctions:8080
+      services__notifications__http__0: http://notifications:8080
+      ForwardedHeaders__Enabled: "true"
+      ForwardedHeaders__KnownNetworks__0: 172.30.0.0/24
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    networks:
+      - backend
+      - edge
+    depends_on:
+      - identity
+      - auctions
+      - notifications
+
+  simulator:
+    <<: *dotnet-service
+    build:
+      <<: *dotnet-build
+      args:
+        PROJECT: src/Simulator/Gavel.Simulator/Gavel.Simulator.csproj
+    profiles:
+      - demo
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      Simulator__GatewayUrl: http://gateway:8080
+      Simulator__BotPassword: ${SIMULATOR_BOT_PASSWORD:-}
+    networks:
+      - edge
+    depends_on:
+      - gateway
+
+  web:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8080}:8080"
+    networks:
+      - edge
+    depends_on:
+      - gateway
+
+networks:
+  backend:
+  edge:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+volumes:
+  postgres-data:
+  rabbitmq-data:

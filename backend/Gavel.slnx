@@ -1,0 +1,40 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/AppHost/">
+    <Project Path="src/AppHost/Gavel.AppHost/Gavel.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/Gavel.Contracts/Gavel.Contracts.csproj" />
+    <Project Path="src/BuildingBlocks/Gavel.Messaging/Gavel.Messaging.csproj" />
+    <Project Path="src/BuildingBlocks/Gavel.Persistence/Gavel.Persistence.csproj" />
+    <Project Path="src/BuildingBlocks/Gavel.ServiceDefaults/Gavel.ServiceDefaults.csproj" />
+    <Project Path="src/BuildingBlocks/Gavel.SharedKernel/Gavel.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/Gavel.Gateway/Gavel.Gateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Auctions/">
+    <Project Path="src/Services/Auctions/Gavel.Auctions.Api/Gavel.Auctions.Api.csproj" />
+    <Project Path="src/Services/Auctions/Gavel.Auctions.Application/Gavel.Auctions.Application.csproj" />
+    <Project Path="src/Services/Auctions/Gavel.Auctions.Domain/Gavel.Auctions.Domain.csproj" />
+    <Project Path="src/Services/Auctions/Gavel.Auctions.Infrastructure/Gavel.Auctions.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Identity/">
+    <Project Path="src/Services/Identity/Gavel.Identity.Api/Gavel.Identity.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Notifications/">
+    <Project Path="src/Services/Notifications/Gavel.Notifications.Api/Gavel.Notifications.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Simulator/">
+    <Project Path="src/Simulator/Gavel.Simulator/Gavel.Simulator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Gavel.Auctions.Domain.Tests/Gavel.Auctions.Domain.Tests.csproj" />
+    <Project Path="tests/Gavel.Auctions.IntegrationTests/Gavel.Auctions.IntegrationTests.csproj" />
+    <Project Path="tests/Gavel.Gateway.Tests/Gavel.Gateway.Tests.csproj" />
+    <Project Path="tests/Gavel.Identity.IntegrationTests/Gavel.Identity.IntegrationTests.csproj" />
+    <Project Path="tests/Gavel.Notifications.IntegrationTests/Gavel.Notifications.IntegrationTests.csproj" />
+    <Project Path="tests/Gavel.TestKit/Gavel.TestKit.csproj" />
+  </Folder>
+</Solution>

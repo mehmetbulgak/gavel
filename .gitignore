@@ -1,0 +1,16 @@
+.env
+**/bin/
+**/obj/
+**/TestResults/
+*.trx
+*.user
+.vs/
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+.env.*
+!.env.example
+*.pem
+*.key

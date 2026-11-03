@@ -1,0 +1,13 @@
+.git
+**/node_modules
+**/bin
+**/obj
+**/dist
+**/TestResults
+**/coverage
+**/*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+docs/screenshots

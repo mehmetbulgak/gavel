@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gavel.Auctions.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gavel.Auctions.Domain\Gavel.Auctions.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Gavel.Messaging\Gavel.Messaging.csproj" />
+  </ItemGroup>
+
+</Project>
