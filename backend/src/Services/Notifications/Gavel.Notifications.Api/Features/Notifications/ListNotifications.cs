@@ -1,3 +1,4 @@
+using System.Data;
 using FluentValidation;
 using Gavel.Notifications.Api.Infrastructure.Persistence;
 using Gavel.SharedKernel;
@@ -22,22 +23,25 @@ internal static class ListNotifications
 
     public sealed class Handler(NotificationsDbContext db, ICurrentUser user)
     {
-        public async Task<NotificationPage> HandleAsync(Query query, CancellationToken ct)
-        {
-            var userId = user.RequiredId;
-            var mine = db.Notifications.AsNoTracking().Where(n => n.UserId == userId);
-            var filtered = query.UnreadOnly ? mine.Where(n => n.ReadAt == null) : mine;
+        public Task<NotificationPage> HandleAsync(Query query, CancellationToken ct) =>
+            db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+            {
+                await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
+                var userId = user.RequiredId;
+                var mine = db.Notifications.AsNoTracking().Where(n => n.UserId == userId);
+                var filtered = query.UnreadOnly ? mine.Where(n => n.ReadAt == null) : mine;
 
-            var total = await filtered.CountAsync(ct);
-            var unread = await mine.CountAsync(n => n.ReadAt == null, ct);
-            var items = await filtered
-                .OrderByDescending(n => n.CreatedAt)
-                .ThenByDescending(n => n.Id)
-                .Skip((query.Page - 1) * query.PageSize)
-                .Take(query.PageSize)
-                .ToListAsync(ct);
+                var total = await filtered.CountAsync(ct);
+                var unread = await mine.CountAsync(n => n.ReadAt == null, ct);
+                var items = await filtered
+                    .OrderByDescending(n => n.CreatedAt)
+                    .ThenByDescending(n => n.Id)
+                    .Skip((query.Page - 1) * query.PageSize)
+                    .Take(query.PageSize)
+                    .ToListAsync(ct);
 
-            return new NotificationPage(items.Select(NotificationDto.From).ToList(), query.Page, query.PageSize, total, unread);
-        }
+                await transaction.CommitAsync(ct);
+                return new NotificationPage(items.Select(NotificationDto.From).ToList(), query.Page, query.PageSize, total, unread);
+            });
     }
 }

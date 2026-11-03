@@ -45,6 +45,44 @@ public sealed class EventHandlingTests(NotificationsFactory factory)
     }
 
     [Fact]
+    public async Task Notification_counts_and_items_share_a_snapshot_during_delivery()
+    {
+        const int count = 12;
+        var inbox = new Inbox(factory);
+        var publishing = PublishAsync();
+        var deadline = DateTime.UtcNow.AddSeconds(15);
+
+        try
+        {
+            while (true)
+            {
+                var page = await inbox.ListAsync();
+                Assert.Equal(page.TotalCount, page.UnreadCount);
+                Assert.Equal(page.TotalCount, page.Items.Count);
+                if (page.TotalCount == count)
+                {
+                    break;
+                }
+
+                Assert.True(DateTime.UtcNow < deadline, "All notifications should arrive before the deadline.");
+                await Task.Delay(10, Ct);
+            }
+        }
+        finally
+        {
+            await publishing;
+        }
+
+        async Task PublishAsync()
+        {
+            for (var i = 0; i < count; i++)
+            {
+                await factory.PublishAsync(new BidderOutbid(Guid.NewGuid(), "Concurrent delivery", inbox.UserId, 100m + i));
+            }
+        }
+    }
+
+    [Fact]
     public async Task A_sale_notifies_the_seller_the_winner_and_the_losers()
     {
         var seller = new Inbox(factory);
