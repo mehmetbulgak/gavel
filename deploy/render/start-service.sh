@@ -31,10 +31,6 @@ elif [ "$service" = gateway ]; then
     wait_http http://127.0.0.1:5203/health/ready
     port=5100
     assembly=Gavel.Gateway
-elif [ "$service" = simulator ]; then
-    wait_http http://127.0.0.1:5100/health/ready
-    cd /app/simulator
-    exec dotnet Gavel.Simulator.dll
 else
     echo 'Unknown service' >&2
     exit 1

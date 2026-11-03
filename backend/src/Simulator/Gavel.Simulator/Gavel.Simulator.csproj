@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\BuildingBlocks\Gavel.ServiceDefaults\Gavel.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Gavel.Simulator.Core\Gavel.Simulator.Core.csproj" />
   </ItemGroup>
 
 </Project>

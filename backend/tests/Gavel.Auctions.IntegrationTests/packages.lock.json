@@ -952,6 +952,7 @@
         "dependencies": {
           "Gavel.Auctions.Infrastructure": "[1.0.0, )",
           "Gavel.Persistence": "[1.0.0, )",
+          "Gavel.Simulator.Core": "[1.0.0, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.14, )",
           "Microsoft.AspNetCore.SignalR.StackExchangeRedis": "[10.0.14, )",
           "Scalar.AspNetCore": "[2.18.7, )"
@@ -1016,6 +1017,12 @@
       },
       "gavel.sharedkernel": {
         "type": "Project"
+      },
+      "gavel.simulator.core": {
+        "type": "Project",
+        "dependencies": {
+          "Gavel.ServiceDefaults": "[1.0.0, )"
+        }
       },
       "gavel.testkit": {
         "type": "Project",

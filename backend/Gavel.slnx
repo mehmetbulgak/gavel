@@ -27,6 +27,7 @@
     <Project Path="src/Services/Notifications/Gavel.Notifications.Api/Gavel.Notifications.Api.csproj" />
   </Folder>
   <Folder Name="/src/Simulator/">
+    <Project Path="src/Simulator/Gavel.Simulator.Core/Gavel.Simulator.Core.csproj" />
     <Project Path="src/Simulator/Gavel.Simulator/Gavel.Simulator.csproj" />
   </Folder>
   <Folder Name="/tests/">

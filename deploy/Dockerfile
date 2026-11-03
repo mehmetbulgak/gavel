@@ -11,15 +11,14 @@ COPY backend/ ./
 RUN dotnet publish src/Services/Identity/Gavel.Identity.Api/Gavel.Identity.Api.csproj -p:RestoreLockedMode=true -c Release -o /out/identity \
     && dotnet publish src/Services/Auctions/Gavel.Auctions.Api/Gavel.Auctions.Api.csproj -p:RestoreLockedMode=true -c Release -o /out/auctions \
     && dotnet publish src/Services/Notifications/Gavel.Notifications.Api/Gavel.Notifications.Api.csproj -p:RestoreLockedMode=true -c Release -o /out/notifications \
-    && dotnet publish src/Gateway/Gavel.Gateway/Gavel.Gateway.csproj -p:RestoreLockedMode=true -c Release -o /out/gateway \
-    && dotnet publish src/Simulator/Gavel.Simulator/Gavel.Simulator.csproj -p:RestoreLockedMode=true -c Release -o /out/simulator
+    && dotnet publish src/Gateway/Gavel.Gateway/Gavel.Gateway.csproj -p:RestoreLockedMode=true -c Release -o /out/gateway
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS dotnet
 FROM rabbitmq:4.1 AS demo
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends postgresql-16 redis-server nginx supervisor curl gettext-base libicu74 libssl3t64 zlib1g libstdc++6 tzdata \
+    && apt-get install -y --no-install-recommends postgresql-16 nginx supervisor curl gettext-base libicu74 libssl3t64 zlib1g libstdc++6 tzdata \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=dotnet /usr/share/dotnet /usr/share/dotnet
 WORKDIR /app
@@ -61,6 +60,7 @@ ENV PATH="/usr/share/dotnet:/usr/lib/postgresql/16/bin:${PATH}" \
     ConnectionStrings__auctionsdb="Host=/tmp/gavel-postgres-socket;Database=gavel_auctions;Username=gavel_auctions;Maximum Pool Size=10" \
     ConnectionStrings__notificationsdb="Host=/tmp/gavel-postgres-socket;Database=gavel_notifications;Username=gavel_notifications;Maximum Pool Size=8" \
     Email__DispatchEnabled=false \
+    Simulator__InProcess=true \
     Simulator__GatewayUrl=http://127.0.0.1:5100 \
     Simulator__BotCount=3 \
     Simulator__TargetLiveAuctions=6 \

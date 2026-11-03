@@ -39,13 +39,7 @@ if [ -s "$RABBITMQ_CONFIG_FILE.conf" ]; then
 else
     broker_password=$(openssl rand -hex 24)
 fi
-if [ -s /tmp/gavel-redis.conf ]; then
-    redis_password=$(sed -n 's/^requirepass //p' /tmp/gavel-redis.conf)
-else
-    redis_password=$(openssl rand -hex 24)
-fi
 export ConnectionStrings__rabbitmq="amqp://gavel:$broker_password@127.0.0.1:5672/gavel"
-export ConnectionStrings__redis="127.0.0.1:6379,password=$redis_password"
 
 cat > "$RABBITMQ_CONFIG_FILE.conf" <<EOF
 listeners.tcp.1 = 127.0.0.1:5672
@@ -59,19 +53,6 @@ disk_free_limit.absolute = 128MiB
 log.console = true
 log.console.level = warning
 EOF
-cat > /tmp/gavel-redis.conf <<EOF
-bind 127.0.0.1
-protected-mode yes
-port 6379
-requirepass $redis_password
-save ""
-appendonly no
-maxmemory 16mb
-maxmemory-policy noeviction
-dir /tmp
-logfile ""
-EOF
-
 sed \
     -e 's/worker_processes auto;/worker_processes 1;/' \
     -e 's|include /etc/nginx/conf.d/\*.conf;|include /tmp/gavel-nginx-server.conf;|' \

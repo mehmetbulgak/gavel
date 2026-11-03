@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Simulator\Gavel.Simulator.Core\Gavel.Simulator.Core.csproj" />
     <ProjectReference Include="..\Gavel.Auctions.Infrastructure\Gavel.Auctions.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Gavel.Persistence\Gavel.Persistence.csproj" />
   </ItemGroup>

@@ -475,6 +475,12 @@
       "gavel.sharedkernel": {
         "type": "Project"
       },
+      "gavel.simulator.core": {
+        "type": "Project",
+        "dependencies": {
+          "Gavel.ServiceDefaults": "[1.0.0, )"
+        }
+      },
       "EFCore.NamingConventions": {
         "type": "CentralTransitive",
         "requested": "[10.0.1, )",
