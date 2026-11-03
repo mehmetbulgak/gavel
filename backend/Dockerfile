@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 ARG PROJECT
 WORKDIR /src
 COPY . .
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages,sharing=locked \
     test -n "$PROJECT" \
     && dotnet restore "$PROJECT" --locked-mode \
     && dotnet publish "$PROJECT" --no-restore -c Release -o /app \
