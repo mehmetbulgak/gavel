@@ -21,7 +21,10 @@ public static class ServiceDefaultsExtensions
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
-        builder.ConfigureOpenTelemetry();
+        if (!string.Equals(builder.Configuration["Telemetry:Enabled"], "false", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.ConfigureOpenTelemetry();
+        }
         builder.Services.AddHealthChecks().AddCheck("self", () => HealthCheckResult.Healthy());
         builder.Services.AddServiceDiscovery();
         builder.Services.ConfigureHttpClientDefaults(http =>

@@ -31,8 +31,11 @@ RUN chmod +x deploy/*.sh && chmod -R a-w /app
 ENV PATH="/usr/share/dotnet:/usr/lib/postgresql/16/bin:${PATH}" \
     DOTNET_ROOT=/usr/share/dotnet \
     DOTNET_EnableDiagnostics=0 \
+    DOTNET_PROCESSOR_COUNT=1 \
     DOTNET_gcServer=0 \
+    DOTNET_GCConserveMemory=5 \
     DOTNET_GCHeapHardLimit=0x3000000 \
+    Telemetry__Enabled=false \
     ASPNETCORE_ENVIRONMENT=Production \
     PORT=10000 \
     PGDATA=/tmp/gavel-postgres \
@@ -59,10 +62,10 @@ ENV PATH="/usr/share/dotnet:/usr/lib/postgresql/16/bin:${PATH}" \
     ConnectionStrings__notificationsdb="Host=/tmp/gavel-postgres-socket;Database=gavel_notifications;Username=gavel_notifications;Maximum Pool Size=8" \
     Email__DispatchEnabled=false \
     Simulator__GatewayUrl=http://127.0.0.1:5100 \
-    Simulator__BotCount=8 \
-    Simulator__TargetLiveAuctions=8 \
-    Simulator__MinBidIntervalMilliseconds=5000 \
-    Simulator__MaxBidIntervalMilliseconds=10000
+    Simulator__BotCount=3 \
+    Simulator__TargetLiveAuctions=6 \
+    Simulator__MinBidIntervalMilliseconds=12000 \
+    Simulator__MaxBidIntervalMilliseconds=20000
 USER rabbitmq
 EXPOSE 10000
 ENTRYPOINT ["/app/deploy/start-demo.sh"]
